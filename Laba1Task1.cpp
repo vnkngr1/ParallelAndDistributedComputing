@@ -102,9 +102,9 @@ int main() {
 		auto endTime = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
-		std::cout << "\nОднопоточный режим:\n";
-		std::cout << "Найдено простых чисел: " << primes.size() << "\n";
-		std::cout << "Время выполнения: " << duration.count() << " мс\n";
+		std::cout << "Одинопоточный режим" << std::endl;
+		std::cout << "Найдено простых чисел: " << primes.size() << std::endl;
+		std::cout << "Время выполнения: " << duration.count() << " мс" << std::endl;
 	}
 
 	return 0;
