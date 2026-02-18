@@ -11,7 +11,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 
-// Функция-проверка простое ли число
+// Функция-проверка простоты числа
 bool isPrime(int n) {
     if (n <= 1) return false;
     if (n <= 3) return true;
@@ -39,73 +39,78 @@ void findPrimesInRange(int start, int end, std::vector<int>& primes, boost::mute
     primes.insert(primes.end(), localPrimes.begin(), localPrimes.end());
 }
 
-// Версия верхней функции для одного потока
-void singleThreaded(int N, std::vector<int>& primes) {
+// Функция поиска для одного потока
+void singleThreaded(int N) {
+
+	std::vector<int> primes;
+	auto startTime = std::chrono::high_resolution_clock::now();
+
     for (int i = 1; i <= N; ++i) {
         if (isPrime(i)) {
             primes.push_back(i);
         }
     }
+
+    auto endTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+
+	std::cout << "Одинопоточный режим" << std::endl;
+	std::cout << "Найдено простых чисел: " << primes.size() << std::endl;
+	std::cout << "Время выполнения: " << duration.count() << " мс" << std::endl;
+
+}
+
+// Функция поиска многопоточная
+void multipleThreaded(int N, int K) {
+	std::vector<int> primes;
+	boost::thread_group threads;
+	boost::mutex mutex;
+
+	int rangeSize = N / K;
+	int remainder = N % K;
+
+	auto startTime = std::chrono::high_resolution_clock::now();
+
+	int currentStart = 1;
+	for (int i = 0; i < K; ++i) {
+		int currentEnd = currentStart + rangeSize - 1;
+
+		// Опустошаем остаток по потокам
+		if (remainder > 0) {
+			currentEnd++;
+			remainder--;
+		}
+
+		threads.create_thread(boost::bind(findPrimesInRange,
+										 currentStart,
+										 currentEnd,
+										 boost::ref(primes),
+										 boost::ref(mutex)));
+
+		currentStart = currentEnd + 1;
+	}
+
+	threads.join_all();
+
+	auto endTime = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+
+	std::cout << "Многопоточный режим. Количество потоков: " << K << std::endl;
+	std::cout << "Найдено простых чисел: " << primes.size() << std::endl;
+	std::cout << "Время выполнения: " << duration.count() << " мс" << std::endl;
 }
 
 int main() {
 
-	int K = 10; // Количество потоков
 	int N = 1000000; // Верхний порог диапозона
 
 	// Многопоточный режим
-	{
-		std::vector<int> primes;
-		boost::thread_group threads;
-		boost::mutex mutex;
-
-		int rangeSize = N / K;
-		int remainder = N % K;
-
-		auto startTime = std::chrono::high_resolution_clock::now();
-
-		int currentStart = 1;
-		for (int i = 0; i < K; ++i) {
-			int currentEnd = currentStart + rangeSize - 1;
-
-			// Опустошаем остаток по потокам
-			if (remainder > 0) {
-				currentEnd++;
-				remainder--;
-			}
-
-			threads.create_thread(boost::bind(findPrimesInRange,
-											 currentStart,
-											 currentEnd,
-											 boost::ref(primes),
-											 boost::ref(mutex)));
-
-			currentStart = currentEnd + 1;
-		}
-
-		threads.join_all();
-
-		auto endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-		std::cout << "Многопоточный режим" << std::endl;
-		std::cout << "Найдено простых чисел: " << primes.size() << std::endl;
-		std::cout << "Время выполнения: " << duration.count() << " мс" << std::endl;
+	for (int K: {2, 4, 8}) {
+		multipleThreaded(N, K);
 	}
 
 	// Однопоточный режим
-	{
-		std::vector<int> primes;
-
-		auto startTime = std::chrono::high_resolution_clock::now();
-		singleThreaded(N, primes);
-		auto endTime = std::chrono::high_resolution_clock::now();
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-		std::cout << "Одинопоточный режим" << std::endl;
-		std::cout << "Найдено простых чисел: " << primes.size() << std::endl;
-		std::cout << "Время выполнения: " << duration.count() << " мс" << std::endl;
-	}
+	singleThreaded(N);
 
 	return 0;
 }
