@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Laba1Task2Atomic.cpp
 // Author      : Garshin Ivan
-// Description : Конкурентное накопление суммы массива с std::atomic
+// Description : Конкурентное накопление суммы массива с std::atomic<long long>
 //- Написать программу, которая вычисляет сумму элементов большого массива (10^7 элементов).
 //- Разделить вычисление на K потоков.
 //============================================================================
@@ -14,7 +14,7 @@
 #include <algorithm>
 
 // Функция для потока по сумме
-void sumInRange(int start, int end, std::atomic<int>& result, const std::vector<int>& nums) {
+void sumInRange(int start, int end, std::atomic<long long>& result, const std::vector<int>& nums) {
     int tempSumInRange = 0;
 
     for (int i = start; i <= end; i++) {
@@ -28,7 +28,7 @@ void sumInRange(int start, int end, std::atomic<int>& result, const std::vector<
 void multipleThreaded(int K, const std::vector<int>& nums) {
     boost::thread_group threads;
 
-    std::atomic<int> result(0);
+    std::atomic<long long> result(0);
 
     int rangeSize = nums.size() / K;
     int remainder = nums.size() % K;
@@ -68,7 +68,7 @@ void multipleThreaded(int K, const std::vector<int>& nums) {
 void vectorGenerator(int size, std::vector<int>& vec) {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
-    std::uniform_int_distribution<> dist(0, 999); // Диапазон [0, 999]
+    std::uniform_int_distribution<> dist(0, 1000000); // Диапазон [0, 999]
 
     for (int i = 0; i < size; i++) {
         vec[i] = dist(gen);
