@@ -33,7 +33,7 @@ int main() {
     for (int i = 0; i < M * N; ++i) h_A[i] = dis(gen);
     for (int i = 0; i < N * P; ++i) h_B[i] = dis(gen);
 
-    // 1. Замер времени на CPU
+    // замер времени на CPU
     auto start_cpu = std::chrono::high_resolution_clock::now();
     matrixMultiplyCPU(h_A, h_B, h_C_cpu);
     auto end_cpu = std::chrono::high_resolution_clock::now();
